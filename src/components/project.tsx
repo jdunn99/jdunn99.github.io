@@ -14,10 +14,6 @@ interface ProjectTagProps {
 	icon?: any
 }
 
-const test = [{title: "Excel", icon: <Excel /> }, {
-	title: "Wix", icon: <Wix />
-}]
-
 const ProjectTag = component$(({title, icon, }: ProjectTagProps) => {
 
 	return <span  class="inline-flex items-center gap-1 px-2 py-1 rounded bg-neutral-100 text-neutral-700 font-medium border border-neutral-200">
