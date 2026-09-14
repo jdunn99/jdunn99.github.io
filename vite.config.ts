@@ -10,6 +10,10 @@ import pkg from "./package.json";
 import tailwindcss from "@tailwindcss/vite";
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import rehypeHighlight from "rehype-highlight";
+
+// @ts-ignore
+import matlab from 'highlight.js/lib/languages/matlab'
 
 type PkgDep = Record<string, string>;
 const { dependencies = {}, devDependencies = {} } = pkg as any as {
@@ -29,8 +33,18 @@ export default defineConfig(({ command, mode }): UserConfig => {
       qwikCity({
         mdx: {
           remarkPlugins: [remarkMath],
-          rehypePlugins: [rehypeKatex]
-        }
+          rehypePlugins: [
+            rehypeKatex,
+            [
+              rehypeHighlight,
+              {
+                languages: {
+                  matlab,
+                },
+              },
+            ],
+          ],
+        },
       }),
       qwikVite(),
       tsconfigPaths({ root: "." }),

@@ -25,7 +25,8 @@ const PROJECTS = [
 		images: ["/credit_risk/default_rates.png", "/credit_risk/transition_matrix.png", "/credit_risk/steady_state.png"]
 	},
 	{
-		title: "Credit Risk Analysis",
+		title: "Credit Risk Analysis of a Corporate Bond Portfolio",
+		link: "credit-risk",
 		description: "Senior capstone mathematical modeling project. Calculated and used forward curves to price bonds across all S&P Global credit rating levels across various time horizons. Modeled and compared cumulative default rates for each rating across a 10-year period, implementing Credit Metrics Monte Carlo simulations with Markov models to forecast portfolio-level credit Value at Risk.",
 		tools: [
 			{
