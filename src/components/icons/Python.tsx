@@ -1,10 +1,10 @@
 import { component$ } from '@builder.io/qwik'
-import Image from './Excel.webp?w=16&h=16&jsx';
+import Image from './python.webp?w=16&h=16&jsx';
 
 export default component$(() => {
   return (
     <div>
-      <Image alt="Excel Icon" />
+      <Image alt="Python Icon" />
     </div>
   );
 });
