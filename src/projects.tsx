@@ -7,6 +7,8 @@ import Wix from './components/icons/Wix'
 const PROJECTS = [
 	{
 		title: "Data Encrpytion Standard (DES) in Excel VBA",
+		link: "des",
+		github: "DES-in-VBA",
 		description: "Created a custom VBA class to simulate bit operations, enabling spreadsheet encryption via DES. Built functions including 16-round subkey generation, expansion functions, S-Box substitutions, and file parsing modules for full encryption and decryption.",
 		tools: [
 			{

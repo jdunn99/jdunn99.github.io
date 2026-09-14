@@ -8,6 +8,9 @@ import { qwikCity } from "@builder.io/qwik-city/vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 import pkg from "./package.json";
 import tailwindcss from "@tailwindcss/vite";
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+
 type PkgDep = Record<string, string>;
 const { dependencies = {}, devDependencies = {} } = pkg as any as {
   dependencies: PkgDep;
@@ -23,7 +26,12 @@ export default defineConfig(({ command, mode }): UserConfig => {
   return {
     base: "/",
     plugins: [
-      qwikCity(),
+      qwikCity({
+        mdx: {
+          remarkPlugins: [remarkMath],
+          rehypePlugins: [rehypeKatex]
+        }
+      }),
       qwikVite(),
       tsconfigPaths({ root: "." }),
       tailwindcss(),

@@ -1,0 +1,267 @@
+---
+title: Data Encryption Standard (DES) in Excel VBA
+---
+
+import {ProjectTag} from '../../../components/project'
+import PROJECTS from '../../../projects'
+
+<h2 class=""> Data Encryption Standard (DES) in Excel VBA</h2>
+<div class="flex items-center justify-between not-prose pt-2">
+    <div class="flex items-center gap-2">
+        {PROJECTS[0].tools.map((tool) => <ProjectTag key={tool.name} {...tool}/>)}
+    </div>
+    <a href="https://github.com/jdunn99/DES-in-VBA" target="_blank" class="text-blue-900">View on GitHub</a>
+</div>
+
+### Background
+
+DES is a block cipher created in 1977 by the National Bureau of Standards as the federal standard for unclassified government communications. The original technical document outling the DES algorithm can be found <a href="https://csrc.nist.gov/files/pubs/fips/46-3/final/docs/fips46-3.pdf" target="_blank" class="text-blue-900 underline">here</a>.
+
+Blocks are processed in 64 bits (8 bytes) and combined together using a method known as cipher block chaining. Each block in encrypted with the following algorithm:
+
+1. **Initial Permutation (IP)**: The bits in each input are rearranged based on a predefined table
+2. **Subkey Generation**: The 64 bit key drops 8 bits based on a predefined structure. The 56 bit key is then split into two halves and permuted into 16 unique 48 bit subkeys.
+3. **Feistel Rounds**: For 16 rounds each block is split according to
+<div class="flex items-center justify-center flex-col">
+$L_i = R_{i-1}\\$
+$$R_i = L_{i-1} \oplus f(R_{i-1}, K_i)$$
+</div>
+
+where $f(R_{i-1}, K_i)$ is a function that performs the following operations:
+<div class="ml-8">
+* Expansion: Expands the $R_{i-1}$ half into 48 bits using a predefined structure
+* Key Mixing: Compute the bitwise XOR operation with each rounds subkey $K_i$
+* S-Box Substitution: Partition the 48 bit right half into 6 bit blocks corresponding to a predefined structure known as the S-Box, reducing the 48 bits to 32.
+* Permutation: Using a fixed permutation table, shuffle the resulting 32 bits.
+</div>
+4. **Post Round Swap**: After the final round, the left and right halves are swapped in reverse order. This allows for decryption by applying the subkeys in reverse order
+5. **Final Permuation**: The combined 64 bit block is permutated by the inverse of the original IP table giving the final encrypted ciphertext.
+
+While DES is an outdated encryption standard and can easily be broken with modern computers, I found it a great exercise in working with low-level code in the Excel VBA environment. 
+
+### A Note on Bit Manipulation in Excel
+
+Because VBA lacks native bit shifting operations bit manipulations are done directly on 8-byte arrays using excels *Byte* data type. More information about general bitwise operations can be found <a href="https://graphics.stanford.edu/~seander/bithacks.html" target="_blank" class="text-blue-900 underline">here.</a>
+
+#### Get_Bit
+
+The *Get_Bit* function gets a bit at index n from a byte array. It implements the bitwise right shift operation $x >> k = \lfloor{\frac{x}{2^{k}}}\rfloor$
+```Basic
+Public Function Get_Bit(ByRef data() As Byte, ByVal n As Long) As Byte
+    Get_Bit = (data(n \ 8) \ (2 ^ (7 - (n Mod 8)))) And 1
+End Function
+```
+The target byte in the array is found and then the remaining bytes determine the bit offset via $k = 7 - (n \mod 8)$. 
+
+#### Set_Bit
+
+The *Set_Bit* function sets a specific bit (changes to a 0 or a 1) in place in the byte array.
+
+```Basic
+Public Sub Set_Bit(ByRef data() As Byte, ByVal n As Long, ByVal value As Byte)
+    Dim index As Long: index = n \ 8
+    Dim bitIndex As Long: bitIndex = 7 - (n Mod 8)
+
+    If value = 1 Then
+      data(index) = data(index) Or (1 * 2 ^ bitIndex)
+    Else
+      data(index) = data(index) And CByte(Not CByte(1 * 2 ^ bitIndex))
+    End If
+End Sub
+```
+
+### Permutation
+As mentioned above, DES involves various permutations with predefined tables. Each permutation follows a single routine.
+
+```Basic
+Public Function Permute(ByRef data() As Byte, 
+                        ByRef table As Variant, 
+                        ByVal output As Long) As Byte()
+    Dim result() As Byte
+    ReDim result(0 To (output \ 8) - 1)
+
+    Dim i As Long
+    For i = 0 To output - 1
+        Set_Bit result, i, Get_Bit(data, table(i) - 1)
+    Next i
+    Permute = result
+End Function
+```
+
+Given a table (IP, P-box, Inverse IP, etc.) the function gets the target with *Get_Bit* and writes to the destination output permutation array with *Set_Bit*.
+
+#### Subkey Generation
+
+The *Generate_Subkeys* functions handles the operations for converting a 64 bit key to 16 unique 48 bit subkeys. The bytes of the key are first permuted into a 56 bit permutation array.
+
+```Basic
+Dim shifts As Variant
+shifts = Array(1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1)
+
+Dim permuted() As Byte
+permuted = Permute(keyBytes, Get_PC1(), 56)
+```
+
+The permuted key is then split in half.
+
+```Basic
+Dim L(0 To 27) As Byte, r(0 To 27) As Byte
+Dim i As Long, j As Long
+
+For i = 0 To 27
+    L(i) = Get_Bit(permuted, i)
+    r(i) = Get_Bit(permuted, i + 28)
+Next i
+```
+
+For 16 rounds the bits in each half are shifted left corresponding to the predefined shifts array. Then each 56 bit pair is converted to a 48 bit subkey corresponding to the Permuted Choice (PC 2) table.
+
+```Basic
+For i = 0 To 15
+    Shift_Left L, 28, CInt(shifts(i))
+    Shift_Left r, 28, CInt(shifts(i))
+
+    Dim combined(0 To 6) As Byte
+    For j = 0 To 27
+        Set_Bit combined, j, L(j)
+        Set_Bit combined, j + 28, r(j)
+    Next j
+
+    Dim subkey() As Byte
+    subkey = Permute(combined, Get_PC2(), 48)
+
+    For j = 0 To 5
+        result(i * 6 + j) = subkey(j)
+    Next j
+Next i
+```
+
+The subkeys used in decryption are simply the reverse of 16 blocks in place.
+
+### The Feistel Function
+
+The core of the DES algorithm is the Feistel function $f(R, K)$ that accepts a 32 bit right half and a 48 bit subkey outputting a transformed 32 bit block.
+
+#### Expansion D-Box
+
+The 32 bit half is transformed into 48 bits according to the predefined expansion D-Box. This expanded half is then combined with the subkey via the bitwise XOR operation.
+```Basic
+Dim expanded() As Byte
+expanded = Permute(r, Get_Exp_Dbox(), 48)
+expanded = XOR_Bytes(expanded, subkey)
+```
+
+#### S-Box Substitution
+The 48 bits are partitioned into eight 6 bit chunks in accordance to the predefined S-Box structure. The outer bits 0 and 5 form a 2 bit row and the inner bits 1-4 form a 4 bit column used to reference the S-Box table.
+
+Each chunk is then streamed together into a singular 32 bit result.
+```Basic
+Dim sboxResult(0 To 3) As Byte
+Dim i As Long, j As Long
+Dim row As Long, col As Long, sval As Long
+
+For i = 0 To 7
+    row = Get_Bit(expanded, i * 6) * 2 + Get_Bit(expanded, i * 6 + 5)
+    col = Get_Bit(expanded, i * 6 + 1) * 8 + Get_Bit(expanded, i * 6 + 2) * 4 + _
+          Get_Bit(expanded, i * 6 + 3) * 2 + Get_Bit(expanded, i * 6 + 4)
+          
+    sval = Get_SBox_Value(i, row, col)
+    
+    For j = 0 To 3
+        If (sval And (2 ^ (3 - j))) <> 0 Then
+            Set_Bit sboxResult, i * 4 + j, 1
+        Else
+            Set_Bit sboxResult, i * 4 + j, 0
+        End If
+    Next j
+Next i
+```
+
+Finally the resulting 32 bit S-Box permutation is permuated again corresponding to the P-Box
+```Basic
+Feistel = Permute(sboxResult, Get_PBox(), 32)
+```
+
+### Cipher Block Chaining
+To enable full text encryption/decryption the algorithm must include a chaining method with corresponding data padding.
+
+```Basic
+Public Function DES_Bytes(ByRef data() As Byte, 
+                          ByRef subkeys() As Byte, 
+                          ByVal hexIV As String, 
+                          ByVal isEncrypt As Boolean) As Byte()
+    Dim i As Long, j As Long, length As Long
+    Dim currentBlock(0 To 7) As Byte
+    Dim prevBlock() As Byte, temp() As Byte, resultBytes() As Byte
+   
+    If isEncrypt Then Apply_Byte_Padding data
+    length = (UBound(data) + 1) / 8
+    ReDim resultBytes(UBound(data))
+    
+    prevBlock = Hex_To_Byte(hexIV)
+
+    For i = 0 To length - 1
+        For j = 0 To 7: currentBlock(j) = data((i * 8) + j): Next j
+        
+        temp = currentBlock
+        If isEncrypt Then
+            temp = XOR_Bytes(temp, prevBlock)
+            temp = Encrypt_Bytes(temp, subkeys)
+            prevBlock = temp
+        Else
+            temp = Encrypt_Bytes(currentBlock, subkeys)
+            temp = XOR_Bytes(temp, prevBlock)
+            prevBlock = currentBlock
+        End If
+        
+        For j = 0 To 7: resultBytes((i * 8) + j) = temp(j): Next j
+    Next i
+
+    DES_Bytes = resultBytes
+End Function
+```
+
+The *Apply_Byte_Padding* implements <a href="https://pentesterlab.com/glossary/pkcs7-padding" target="_blank" class="text-blue-900 underline">PKCS#7 Byte Padding</a> to ensure each input reaches 64 bits.
+
+In encryption the plaintext is XORed with the previous encrpyted block before applying the Feistel algorithm. Decryption works in reverse by passing the ciphertext to the inverse Feistel and then XORing with the previous ciphertext block.
+
+### File I/O
+
+One of my goals on this project was to enable full file-based encryption/decryption directly in Excel. Users can upload a file directly into the workbook and output a full encrypted/decrypted file. 
+
+**A note of caution:** in its current state the program can only handle small files as any file larger than $\approx 1$ MB can cause Excel to crash.
+
+```Basic
+Public Sub Process_File(ByVal path As String, 
+                        ByRef keyBytes() As Byte, 
+                        ByVal hexIV As String, 
+                        ByRef subkeys() As Byte, 
+                        ByVal isEncrypt As Boolean)
+    Dim fIn As Integer, fOut As Integer
+    Dim buffer() As Byte, processed() As Byte
+    Dim totalBytes As Long, chunkSize As Long, processedBytes As Long
+    
+    fIn = FreeFile: Open path For Binary Access Read As #fIn
+    totalBytes = LOF(fIn)
+    fOut = FreeFile: Open savePath For Binary Access Write As #fOut
+    
+    chunkSize = 65536 
+    processedBytes = 0
+    
+    Do While processedBytes < totalBytes
+        If totalBytes - processedBytes < chunkSize Then
+            chunkSize = totalBytes - processedBytes
+            ReDim buffer(0 To chunkSize - 1)
+        End If
+        
+        Get #fIn, , buffer
+        processed = DES_Bytes(buffer, subkeys, hexIV, isEncrypt)
+        Put #fOut, , processed
+        processedBytes = processedBytes + chunkSize
+    Loop
+    
+    Close #fIn: Close #fOut
+End Sub
+```
+
+File processing is done using Excel's file API with *FreeFile*. For performance, file bytes are read, processed and written to the file on disk in 64 KB streams.

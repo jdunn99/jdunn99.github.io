@@ -24,10 +24,11 @@
     "qwik": "qwik"
   },
   "devDependencies": {
-    "@qwikest/icons": "^0.0.13",
     "@builder.io/qwik": "^1.20.0",
     "@builder.io/qwik-city": "^1.20.0",
     "@eslint/js": "^9",
+    "@qwikest/icons": "^0.0.13",
+    "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.1.4",
     "@types/node": "20.19.0",
     "eslint": "9.32.0",
@@ -43,5 +44,8 @@
     "vite": "7.3.1",
     "vite-tsconfig-paths": "^4.2.1"
   },
-  "dependencies": {}
+  "dependencies": {
+    "rehype-katex": "^7.0.1",
+    "remark-math": "^6.0.0"
+  }
 }

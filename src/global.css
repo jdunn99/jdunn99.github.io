@@ -1,3 +1,62 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@import "katex/dist/katex.min.css";
 
 
+.prose pre {
+  background-color: #f8f9fa !important;
+  color: #000000 !important;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 1.25rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  overflow: hidden;
+}
+
+code[class*="language-"] {
+  color: inherit;
+  background: none;
+  font-family: inherit;
+}
+
+.token.keyword { 
+  color: #008000; 
+  font-weight: bold; 
+}
+
+.token.function { 
+  color: #0000ff; 
+}
+
+.token.string { 
+  color: #ba2121; 
+}
+
+.token.comment, 
+.token.prolog, 
+.token.doctype { 
+  color: #408080; 
+  font-style: italic; 
+}
+
+.token.number, 
+.token.builtin { 
+  color: #008000; 
+}
+
+.token.class-name { 
+  color: #0000ff; 
+  font-weight: bold; 
+}
+
+.token.operator, 
+.token.punctuation, 
+.token.property, 
+.token.variable, 
+.token.constant { 
+  color: #000000; 
+}
