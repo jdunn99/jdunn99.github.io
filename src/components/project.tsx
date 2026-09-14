@@ -1,6 +1,4 @@
 import { component$ } from "@builder.io/qwik";
-import Excel from './icons/Excel'
-import Wix from './icons/Wix'
 
 interface ProjectProps {
 	title: string,
