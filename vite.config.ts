@@ -21,7 +21,7 @@ errorOnDuplicatesPkgDeps(devDependencies, dependencies);
 
 export default defineConfig(({ command, mode }): UserConfig => {
   return {
-    base: "https://github.com/jdunn99/Personal-Site",
+    base: "/jdunn99.github.io/",
     plugins: [
       qwikCity(),
       qwikVite(),
