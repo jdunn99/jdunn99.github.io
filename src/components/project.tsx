@@ -43,7 +43,7 @@ export default component$(
 					{typeof link !== "undefined" ? (
 						<a
 							href={`/projects/${link}`}
-							class="rounded-lg bg-sky-800 p-1.5 text-sm text-white"
+							class="rounded-lg bg-blue-900 p-1.5 text-sm text-white"
 						>
 							Read More
 						</a>
