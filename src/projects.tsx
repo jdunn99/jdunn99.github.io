@@ -6,6 +6,21 @@ import Python from "./components/icons/Python";
 
 const PROJECTS = [
 	{
+		title: "DecisionTrees.jl",
+		github: "DecisionTrees.jl",
+		link: "decision-trees",
+		description:
+			"A Julia implementation of CART decision trees, with cost-complexity pruning and cross-validation. Inspired by R's rpart library. Still an early work in progress. Supports basic tree building features (fitting, pruning, cross-validation, and prediction).",
+		tools: [
+			{
+				title: "Julia",
+			},
+			{
+				title: "Work in Progress",
+			},
+		],
+	},
+	{
 		title: "Data Encryption Standard (DES) in Excel VBA",
 		link: "des",
 		github: "DES-in-VBA",
