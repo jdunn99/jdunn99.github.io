@@ -1,4 +1,5 @@
 import Excel from "./components/icons/Excel";
+import Julia from "./components/icons/Julia";
 // import JavaScript from "./components/icons/JavaScript";
 import Matlab from "./components/icons/Matlab";
 import Python from "./components/icons/Python";
@@ -14,6 +15,7 @@ const PROJECTS = [
 		tools: [
 			{
 				title: "Julia",
+				icon: <Julia />
 			},
 			{
 				title: "Work in Progress",
